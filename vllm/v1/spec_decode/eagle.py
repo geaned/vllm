@@ -19,6 +19,7 @@ from vllm.model_executor.model_loader import get_model
 from vllm.model_executor.models import supports_multimodal
 from vllm.model_executor.models.deepseek_v2 import DeepseekV32IndexerCache
 from vllm.model_executor.models.llama_eagle3 import Eagle3LlamaForCausalLM
+from vllm.model_executor.models.qwen2_eagle3 import Eagle3Qwen2ForCausalLM
 from vllm.platforms import current_platform
 from vllm.utils import is_pin_memory_available
 from vllm.v1.attention.backends.flash_attn import FlashAttentionMetadata
@@ -174,7 +175,8 @@ class EagleProposer:
             last_token_indices = common_attn_metadata.query_start_loc[1:] - 1
 
         if self.method == "eagle3":
-            assert isinstance(self.model, Eagle3LlamaForCausalLM)
+            assert isinstance(self.model, (Eagle3LlamaForCausalLM,
+                                           Eagle3Qwen2ForCausalLM))
             target_hidden_states = self.model.combine_hidden_states(
                 target_hidden_states)
             assert target_hidden_states.shape[-1] == self.hidden_size
