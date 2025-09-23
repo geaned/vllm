@@ -149,11 +149,6 @@ class Qwen2Model(nn.Module):
     ) -> tuple[torch.Tensor, torch.Tensor]:
         input_embeds = self.embed_tokens(input_ids)
         assert hidden_states.shape[-1] == input_embeds.shape[-1]
-        # print("inputs embeds", input_embeds.shape, input_embeds.dtype, "\n", input_embeds[0, :10], "\n", input_embeds[1, :10], "\n", input_embeds[-1, :10])
-        # input_embeds_c = input_embeds.clone().cpu()
-        # print("inputs embeds", input_embeds_c.shape, input_embeds_c.dtype)
-        # for idx in range(input_embeds_c.shape[0]):
-        #     print(input_embeds_c[idx, :10])
 
         residual = None
         hidden_states, residual = self.layers[0](
@@ -164,7 +159,6 @@ class Qwen2Model(nn.Module):
         )
 
         hidden_states, hidden_prenorm = self.norm(hidden_states, residual)
-        # print("after midlayer", hidden_states.shape, hidden_states.dtype, "\n", hidden_states[0, :10], "\n", hidden_states[1, :10], "\n", hidden_states[-1, :10])
         return hidden_states, hidden_prenorm
 
     def load_weights(self, weights: Iterable[tuple[str,
