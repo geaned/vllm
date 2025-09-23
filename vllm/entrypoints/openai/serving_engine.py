@@ -30,6 +30,7 @@ from vllm.entrypoints.chat_utils import (ChatCompletionMessageParam,
                                          ConversationMessage,
                                          apply_hf_chat_template,
                                          apply_mistral_chat_template,
+                                         format_openai_to_yagpt,
                                          parse_chat_messages_futures,
                                          resolve_chat_template_content_format)
 from vllm.entrypoints.context import ConversationContext
@@ -768,11 +769,16 @@ class OpenAIServing:
             content_format=resolved_content_format,
         )
 
+        messages_inner, tools_inner = format_openai_to_yagpt(
+            messages=conversation,
+            tools=tool_dicts
+        )
+
         _chat_template_kwargs: dict[str, Any] = dict(
             chat_template=chat_template,
             add_generation_prompt=add_generation_prompt,
             continue_final_message=continue_final_message,
-            tools=tool_dicts,
+            tools=tools_inner,
             documents=documents,
         )
         _chat_template_kwargs.update(chat_template_kwargs or {})
@@ -790,10 +796,11 @@ class OpenAIServing:
         else:
             request_prompt = apply_hf_chat_template(
                 tokenizer=tokenizer,
-                conversation=conversation,
+                conversation=messages_inner,
                 model_config=model_config,
                 **_chat_template_kwargs,
             )
+            request_prompt = request_prompt.replace("\r\n", "[NL]").replace("\n", "[NL]")
 
         mm_data = await mm_data_future
 
