@@ -1398,5 +1398,9 @@ def format_openai_to_yagpt(messages, tools):
             "tool_results": tools_cur
         })
 
-    tools_inner = [tool["function"] for tool in tools]
+    tools_inner = (
+        [tool["function"] for tool in tools]
+        if tools is not None
+        else []
+    )
     return messages_inner, tools_inner
