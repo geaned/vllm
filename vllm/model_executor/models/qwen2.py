@@ -191,14 +191,16 @@ class Qwen2Attention(nn.Module):
 
 class Qwen2DecoderLayer(nn.Module):
 
-    def __init__(
-        self,
-        config: Qwen2Config,
-        cache_config: Optional[CacheConfig] = None,
-        quant_config: Optional[QuantizationConfig] = None,
-        prefix: str = "",
-    ) -> None:
+    def __init__(self,
+                 vllm_config: VllmConfig,
+                 prefix: str = "",
+                 config: Optional[Qwen2Config] = None) -> None:
         super().__init__()
+
+        config = config or vllm_config.model_config.hf_config
+        cache_config = vllm_config.cache_config
+        quant_config = vllm_config.quant_config
+
         self.hidden_size = config.hidden_size
         # Requires transformers > 4.32.0
         rope_theta = getattr(config, "rope_theta", 1000000)
@@ -318,10 +320,9 @@ class Qwen2Model(nn.Module):
         decoder_layer_type = decoder_layer_type or Qwen2DecoderLayer
         self.start_layer, self.end_layer, self.layers = make_layers(
             config.num_hidden_layers,
-            lambda prefix: decoder_layer_type(config=config,
-                                              cache_config=cache_config,
-                                              quant_config=quant_config,
-                                              prefix=prefix),
+            lambda prefix: decoder_layer_type(vllm_config=vllm_config,
+                                              prefix=prefix,
+                                              config=config),
             prefix=f"{prefix}.layers",
         )
 
